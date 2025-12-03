@@ -1,286 +1,245 @@
 /* eslint-disable */
+const chalk = require('chalk');
+
+const SEARCH_ENGINE_ALTERNATIVES = {
+    'google.com/sorry': 'https://html.duckduckgo.com/html/',
+    'ipv4.google.com/sorry': 'https://html.duckduckgo.com/html/',
+    'consent.google.com': 'https://www.google.com/ncr',
+    'bing.com/captcha': 'https://www.startpage.com',
+    'consent.yahoo.com': 'https://search.yahoo.com'
+};
+
 async function pluginInit(page) {
-	// Enable CDP request interception for ad blocking
-	if (page._browserType === 'puppeteer') {
-		// Get CDP session
-		const client = await page.target().createCDPSession();
-		
-		// Enable network domain
-		await client.send('Network.enable');
-		
-		// Ad/tracker domains to block
-		const blockedDomains = [
-			// Google Ads & Analytics
-			'doubleclick.net',
-			'googlesyndication.com',
-			'googleadservices.com',
-			'google-analytics.com',
-			'googletagmanager.com',
-			'googletagservices.com',
-			'googlesyndication.com',
-			'adservice.google.com',
-			'pagead2.googlesyndication.com',
-			'tpc.googlesyndication.com',
-			'youtube.com/api/stats',
-			'youtube.com/ptracking',
-			
-			// Facebook/Meta Tracking
-			'facebook.com/tr',
-			'facebook.net',
-			'connect.facebook.net',
-			'pixel.facebook.com',
-			'analytics.facebook.com',
-			'an.facebook.com',
-			'static.xx.fbcdn.net',
-			'b-graph.facebook.com',
-			
-			// Amazon Ads
-			'amazon-adsystem.com',
-			'aax.amazon-adsystem.com',
-			'c.amazon-adsystem.com',
-			's.amazon-adsystem.com',
-			
-			// Yahoo/Verizon Media
-			'ads.yahoo.com',
-			'analytics.yahoo.com',
-			'gemini.yahoo.com',
-			'sp.analytics.yahoo.com',
-			'udc.yahoo.com',
-			'udcm.yahoo.com',
-			
-			// Microsoft/Bing Ads
-			'ads.msn.com',
-			'ads1.msn.com',
-			'adnexus.net',
-			'adnxs.com',
-			'bat.bing.com',
-			'sb.scorecardresearch.com',
-			
-			// Twitter/X Ads
-			'ads-twitter.com',
-			'static.ads-twitter.com',
-			'analytics.twitter.com',
-			't.co/i/adsct',
-			
-			// TikTok Tracking
-			'analytics.tiktok.com',
-			'ads.tiktok.com',
-			
-			// Reddit Ads
-			'rereddit.com',
-			'events.redditmedia.com',
-			
-			// Major Ad Networks
-			'adform.net',
-			'advertising.com',
-			'admob.com',
-			'adsafeprotected.com',
-			'adsrvr.org',
-			'adtechus.com',
-			'bidswitch.net',
-			'casalemedia.com',
-			'contextweb.com',
-			'criteo.com',
-			'criteo.net',
-			'openx.net',
-			'outbrain.com',
-			'pubmatic.com',
-			'quantserve.com',
-			'rubiconproject.com',
-			'taboola.com',
-			'turn.com',
-			'media.net',
-			'sovrn.com',
-			'indexww.com',
-			'smartadserver.com',
-			'advertising.apple.com',
-			
-			// Analytics & Tracking
-			'hotjar.com',
-			'mouseflow.com',
-			'luckyorange.com',
-			'crazyegg.com',
-			'mixpanel.com',
-			'segment.com',
-			'segment.io',
-			'amplitude.com',
-			'heap.io',
-			'fullstory.com',
-			'loggly.com',
-			'newrelic.com',
-			'nr-data.net',
-			'clarity.ms',
-			'inspectlet.com',
-			'kissmetrics.com',
-			'chartbeat.com',
-			'quantcast.com',
-			'comscore.com',
-			'scorecardresearch.com',
-			'Nielsen.com',
-			'omtrdc.net',
-			'demdex.net',
-			'everesttech.net',
-			'2o7.net',
-			
-			// Privacy-invasive Trackers
-			'sentry.io',
-			'bugsnag.com',
-			'rollbar.com',
-			'trackjs.com',
-			'errorception.com',
-			'raygun.io',
-			'airbrake.io',
-			
-			// Affiliate Networks
-			'awin1.com',
-			'avantlink.com',
-			'anrdoezrs.net',
-			'dpbolvw.net',
-			'emjcd.com',
-			'jdoqocy.com',
-			'kqzyfj.com',
-			'qksrv.net',
-			'tkqlhce.com',
-			'apmebf.com',
-			'cj.com',
-			'commission-junction.com',
-			'linksynergy.com',
-			'shareasale.com',
-			'pepperjam.com',
-			'pjtra.com',
-			
-			// Video Ad Networks
-			'imasdk.googleapis.com',
-			'2mdn.net',
-			'adnxs.com',
-			'advertising.com',
-			'fwmrm.net',
-			'gwallet.com',
-			'innovid.com',
-			'teads.tv',
-			'videohub.tv',
-			'tremorhub.com',
-			'tubemogul.com',
-			
-			// Mobile Ad Networks
-			'mobileads.google.com',
-			'adc3-launch.adcolony.com',
-			'ads.mopub.com',
-			'api.mixpanel.com',
-			'inmobicdn.net',
-			'inner-active.mobi',
-			'millennialmedia.com',
-			'tapjoyads.com',
-			'unityads.unity3d.com',
-			'vungle.com',
-			
-			// Retargeting/Remarketing
-			'adroll.com',
-			'rlcdn.com',
-			'perfectaudience.com',
-			'retargetly.com',
-			'fetchback.com',
-			'chango.com',
-			'advertising.com',
-			
-			// Malware/Malicious
-			'malware',
-			'malvertising',
-			'coinminer',
-			'cryptominer',
-			'crypto-loot',
-			'coinhive',
-			'jsecoin',
-			'minero.cc',
-			'miner.pr0gramm.com',
-			'authedmine.com',
-			
-			// Pop-ups & Redirects
-			'popads.net',
-			'popcash.net',
-			'propellerads.com',
-			'revcontent.com',
-			'mgid.com',
-			'zedo.com',
-			'bidvertiser.com',
-			'clickadu.com',
-			'exoclick.com',
-			'juicyads.com',
-			'trafficjunky.net',
-			
-			// Generic Patterns (catch-alls)
-			'adserver',
-			'adservice',
-			'advertising',
-			'tracker',
-			'telemetry',
-			'analytics',
-			'/ads/',
-			'/ad/',
-			'/banner',
-			'/tracking',
-			'/pixel',
-			'metrics',
-			'tag.js',
-			'gtag',
-			'fbevents',
-			'fbq',
-			'_gat',
-			'_gaq',
-			'collect?',
-			'beacon',
-			'impression',
-			'click?',
-			'event?'
-		];
-		
-		// Block requests matching ad patterns
-		await client.send('Network.setBlockedURLs', {
-			urls: blockedDomains.map(domain => `*${domain}*`)
-		});
-		
-		console.log('🛡️  Ad blocking enabled via CDP');
-	}
-	
-	// Stealth measures to avoid bot detection
-	await page.evaluateOnNewDocument(() => {
-		// Override the navigator.webdriver property
-		Object.defineProperty(navigator, 'webdriver', {
-			get: () => false,
-		});
+    if (page._browserType === 'puppeteer') {
+        try {
+            const client = await page.target().createCDPSession();
+            await client.send('Network.enable');
+            
+            const blockedDomains = [
+                'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
+                'google-analytics.com', 'googletagmanager.com', 'adservice.google.com',
+                'facebook.com/tr', 'facebook.net', 'connect.facebook.net',
+                'amazon-adsystem.com', 'ads.yahoo.com', 'ads.msn.com',
+                'adnexus.net', 'adnxs.com', 'criteo.com', 'outbrain.com',
+                'taboola.com', 'hotjar.com', 'mixpanel.com', 'segment.io',
+                'amplitude.com', 'fullstory.com', 'clarity.ms', 'newrelic.com',
+                'sentry.io', 'popads.net', 'popcash.net', 'propellerads.com'
+            ];
+            
+            await client.send('Network.setBlockedURLs', {
+                urls: blockedDomains.map(domain => `*${domain}*`)
+            });
+            
+            console.log(chalk.cyan('🛡️  Ad blocking enabled'));
+        } catch (e) {
+        }
+    }
+    
+    await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined,
+        });
 
-		// Override permissions
-		const originalQuery = window.navigator.permissions.query;
-		window.navigator.permissions.query = (parameters) => (
-			parameters.name === 'notifications' ?
-				Promise.resolve({ state: Notification.permission }) :
-				originalQuery(parameters)
-		);
+        delete navigator.__proto__.webdriver;
 
-		// Add chrome object
-		window.chrome = {
-			runtime: {},
-		};
+        const originalQuery = window.navigator.permissions.query;
+        window.navigator.permissions.query = (parameters) => (
+            parameters.name === 'notifications' ?
+                Promise.resolve({ state: Notification.permission }) :
+                originalQuery(parameters)
+        );
 
-		// Override plugins length
-		Object.defineProperty(navigator, 'plugins', {
-			get: () => [1, 2, 3, 4, 5],
-		});
+        window.chrome = {
+            runtime: {
+                connect: function() { return { onMessage: { addListener: function() {} } }; },
+                sendMessage: function() {}
+            },
+            loadTimes: function() {
+                return {
+                    commitLoadTime: Date.now() / 1000,
+                    connectionInfo: 'http/1.1',
+                    finishDocumentLoadTime: Date.now() / 1000,
+                    finishLoadTime: Date.now() / 1000,
+                    firstPaintAfterLoadTime: 0,
+                    firstPaintTime: Date.now() / 1000,
+                    navigationType: 'Other',
+                    npnNegotiatedProtocol: 'http/1.1',
+                    requestTime: Date.now() / 1000,
+                    startLoadTime: Date.now() / 1000,
+                    wasAlternateProtocolAvailable: false,
+                    wasFetchedViaSpdy: false,
+                    wasNpnNegotiated: false
+                };
+            },
+            csi: function() {
+                return {
+                    onloadT: Date.now(),
+                    pageT: Date.now() - performance.timing.navigationStart,
+                    startE: performance.timing.navigationStart,
+                    tran: 15
+                };
+            },
+            app: {
+                isInstalled: false,
+                InstallState: { DISABLED: 'disabled', INSTALLED: 'installed', NOT_INSTALLED: 'not_installed' },
+                RunningState: { CANNOT_RUN: 'cannot_run', READY_TO_RUN: 'ready_to_run', RUNNING: 'running' }
+            }
+        };
 
-		// Override languages
-		Object.defineProperty(navigator, 'languages', {
-			get: () => ['en-US', 'en'],
-		});
-	});
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => {
+                const plugins = [
+                    { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format', length: 1 },
+                    { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '', length: 1 },
+                    { name: 'Native Client', filename: 'internal-nacl-plugin', description: '', length: 2 }
+                ];
+                plugins.item = (i) => plugins[i] || null;
+                plugins.namedItem = (name) => plugins.find(p => p.name === name) || null;
+                plugins.refresh = () => {};
+                Object.setPrototypeOf(plugins, PluginArray.prototype);
+                return plugins;
+            },
+        });
 
-	await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'mimeTypes', {
+            get: () => {
+                const mimeTypes = [
+                    { type: 'application/pdf', suffixes: 'pdf', description: 'Portable Document Format' },
+                    { type: 'text/pdf', suffixes: 'pdf', description: 'Portable Document Format' }
+                ];
+                mimeTypes.item = (i) => mimeTypes[i] || null;
+                mimeTypes.namedItem = (name) => mimeTypes.find(m => m.type === name) || null;
+                Object.setPrototypeOf(mimeTypes, MimeTypeArray.prototype);
+                return mimeTypes;
+            }
+        });
 
-		if (window !== window.parent) return;
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en'],
+        });
 
-		window.addEventListener('DOMContentLoaded', () => {
+        Object.defineProperty(navigator, 'platform', {
+            get: () => 'Win32',
+        });
 
-			const box = document.createElement('face-was-here');
-			const element = document.createElement('style');
+        Object.defineProperty(navigator, 'vendor', {
+            get: () => 'Google Inc.',
+        });
+
+        Object.defineProperty(navigator, 'hardwareConcurrency', {
+            get: () => 8,
+        });
+
+        Object.defineProperty(navigator, 'deviceMemory', {
+            get: () => 8,
+        });
+
+        Object.defineProperty(navigator, 'maxTouchPoints', {
+            get: () => 0,
+        });
+
+        Object.defineProperty(screen, 'colorDepth', {
+            get: () => 24,
+        });
+
+        Object.defineProperty(screen, 'pixelDepth', {
+            get: () => 24,
+        });
+
+        const getParameter = WebGLRenderingContext.prototype.getParameter;
+        WebGLRenderingContext.prototype.getParameter = function(parameter) {
+            if (parameter === 37445) return 'Intel Inc.';
+            if (parameter === 37446) return 'Intel Iris OpenGL Engine';
+            return getParameter.call(this, parameter);
+        };
+
+        const getParameter2 = WebGL2RenderingContext.prototype.getParameter;
+        WebGL2RenderingContext.prototype.getParameter = function(parameter) {
+            if (parameter === 37445) return 'Intel Inc.';
+            if (parameter === 37446) return 'Intel Iris OpenGL Engine';
+            return getParameter2.call(this, parameter);
+        };
+
+        const timeOffset = Math.random() * 100;
+        const originalNow = Date.now;
+        Date.now = function() {
+            return originalNow.call(Date) + timeOffset;
+        };
+
+        const originalGetTimezoneOffset = Date.prototype.getTimezoneOffset;
+        Date.prototype.getTimezoneOffset = function() {
+            return -300;
+        };
+
+        if (window.Notification) {
+            window.Notification.requestPermission = () => Promise.resolve('default');
+        }
+
+        const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+        HTMLCanvasElement.prototype.toDataURL = function(type) {
+            if (this.width === 16 && this.height === 16) {
+                return originalToDataURL.apply(this, arguments);
+            }
+            return originalToDataURL.apply(this, arguments);
+        };
+
+        const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+        CanvasRenderingContext2D.prototype.getImageData = function(sx, sy, sw, sh) {
+            return originalGetImageData.call(this, sx, sy, sw, sh);
+        };
+    });
+
+    page.on('framenavigated', async (frame) => {
+        if (frame !== page.mainFrame()) return;
+        
+        const url = frame.url();
+        
+        for (const [pattern, alternative] of Object.entries(SEARCH_ENGINE_ALTERNATIVES)) {
+            if (url.includes(pattern)) {
+                console.log(chalk.yellow(`⚠️  Anti-bot page detected: ${pattern}`));
+                console.log(chalk.cyan(`🔄 Redirecting to alternative: ${alternative}`));
+                
+                await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
+                
+                try {
+                    await page.goto(alternative, { 
+                        waitUntil: 'domcontentloaded',
+                        timeout: 30000 
+                    });
+                    console.log(chalk.green('✓ Successfully redirected'));
+                } catch (e) {
+                    console.log(chalk.red('✗ Redirect failed:'), e.message);
+                }
+                break;
+            }
+        }
+        
+        if (url.includes('google.com') && !url.includes('sorry')) {
+            try {
+                await frame.evaluate(() => {
+                    const consentButtons = document.querySelectorAll('button');
+                    for (const btn of consentButtons) {
+                        if (btn.textContent.includes('Accept') || 
+                            btn.textContent.includes('I agree') ||
+                            btn.textContent.includes('Agree')) {
+                            btn.click();
+                            break;
+                        }
+                    }
+                });
+            } catch (e) {
+            }
+        }
+    });
+
+    await page.evaluateOnNewDocument(() => {
+
+        if (window !== window.parent) return;
+
+        window.addEventListener('DOMContentLoaded', () => {
+
+            const box = document.createElement('face-was-here');
+            const element = document.createElement('style');
 
             element.innerHTML = `
               face-was-here {
@@ -320,37 +279,35 @@ async function pluginInit(page) {
             }
             `;
 
-			document.head.appendChild(element);
-			document.body.appendChild(box);
+            document.head.appendChild(element);
+            document.body.appendChild(box);
 
             box.style.left = '980px';
             box.style.top = '400px';
-			/** HANDLE EVENTS */
 
-			document.addEventListener('mousemove', event => {
-				box.style.left = event.pageX + 'px';
-				box.style.top = event.pageY + 'px';
-				update(event.buttons);
-			}, true);
+            document.addEventListener('mousemove', event => {
+                box.style.left = event.pageX + 'px';
+                box.style.top = event.pageY + 'px';
+                update(event.buttons);
+            }, true);
 
-			document.addEventListener('mousedown', event => {
-				update(event.buttons);
-				box.classList.add('i-' + event.which);
-			}, true);
+            document.addEventListener('mousedown', event => {
+                update(event.buttons);
+                box.classList.add('i-' + event.which);
+            }, true);
 
-			document.addEventListener('mouseup', event => {
-				update(event.buttons);
-				box.classList.remove('i-' + event.which);
-			}, true);
+            document.addEventListener('mouseup', event => {
+                update(event.buttons);
+                box.classList.remove('i-' + event.which);
+            }, true);
 
-			function update(buttons) {
-				for (let i = 0; i < 5; i++) {
-					/** TOGGLE CERTAIN PARTS OF THE INSERTED MOUSE */
-					box.classList.toggle('i-' + i, buttons & (1 << i));
-				}
-			}
-		}, false);
-	});
+            function update(buttons) {
+                for (let i = 0; i < 5; i++) {
+                    box.classList.toggle('i-' + i, buttons & (1 << i));
+                }
+            }
+        }, false);
+    });
 }
 
 module.exports = pluginInit;

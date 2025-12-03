@@ -21,6 +21,9 @@
     "knex": "^3.1.0",
     "pg": "^8.16.3",
     "playwright": "^1.56.1",
-    "puppeteer": "^23.11.1"
+    "puppeteer": "^23.11.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }
