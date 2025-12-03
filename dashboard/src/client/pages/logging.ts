@@ -103,11 +103,11 @@ export function renderLoggingPage(container: HTMLElement) {
 
   const metricsSettings = document.getElementById('metrics-settings')!;
   metricsSettings.appendChild(createNumberInput(
-    'Metrics Interval (ms)',
+    'Metrics Interval (mins)',
     'How often to collect metrics',
     'metricsInterval',
-    settings.metricsInterval,
-    60000
+    Math.round(settings.metricsInterval / 60000),
+    1
   ));
 
   document.getElementById('save-logging')?.addEventListener('click', () => collectAndSave(container));
@@ -115,6 +115,7 @@ export function renderLoggingPage(container: HTMLElement) {
 
 function collectAndSave(container: HTMLElement) {
   const updates: any = {};
+  const timeSettingsInMinutes = ['metricsInterval'];
   
   container.querySelectorAll('[data-setting]').forEach(element => {
     const key = (element as HTMLElement).dataset.setting!;
@@ -123,7 +124,11 @@ function collectAndSave(container: HTMLElement) {
       updates[key] = element.classList.contains('active');
     } else if (element instanceof HTMLSelectElement || element instanceof HTMLInputElement) {
       const value = element.value;
-      updates[key] = element.type === 'number' ? Number(value) : value;
+      let numValue = element.type === 'number' ? Number(value) : value;
+      if (timeSettingsInMinutes.includes(key) && typeof numValue === 'number') {
+        numValue = numValue * 60000;
+      }
+      updates[key] = numValue;
     }
   });
 

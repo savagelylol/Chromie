@@ -73,12 +73,12 @@ export function renderBrowserPage(container: HTMLElement) {
 
   const sessionSettings = document.getElementById('session-settings')!;
   sessionSettings.appendChild(createNumberInput(
-    'Max Session Duration (ms)',
+    'Max Session Duration (mins)',
     'Maximum time for a single session',
     'maxSessionDuration',
-    settings.maxSessionDuration,
-    1000,
-    3600000
+    Math.round(settings.maxSessionDuration / 60000),
+    1,
+    60
   ));
   sessionSettings.appendChild(createToggle(
     'Auto-Close Browser',
@@ -124,6 +124,7 @@ export function renderBrowserPage(container: HTMLElement) {
 
 function collectAndSave(container: HTMLElement) {
   const updates: any = {};
+  const timeSettingsInMinutes = ['maxSessionDuration'];
   
   container.querySelectorAll('[data-setting]').forEach(element => {
     const key = (element as HTMLElement).dataset.setting!;
@@ -132,7 +133,11 @@ function collectAndSave(container: HTMLElement) {
       updates[key] = element.classList.contains('active');
     } else if (element instanceof HTMLSelectElement || element instanceof HTMLInputElement) {
       const value = element.value;
-      updates[key] = element.type === 'number' ? Number(value) : value;
+      let numValue = element.type === 'number' ? Number(value) : value;
+      if (timeSettingsInMinutes.includes(key) && typeof numValue === 'number') {
+        numValue = numValue * 60000;
+      }
+      updates[key] = numValue;
     }
   });
 

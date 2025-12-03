@@ -96,11 +96,11 @@ export function renderModerationPage(container: HTMLElement) {
 
   const punishmentSettings = document.getElementById('punishment-settings')!;
   punishmentSettings.appendChild(createNumberInput(
-    'Timeout Duration (ms)',
-    'Default timeout duration in milliseconds',
+    'Timeout Duration (mins)',
+    'Default timeout duration',
     'timeoutDuration',
-    settings.timeoutDuration,
-    0
+    Math.round(settings.timeoutDuration / 60000),
+    1
   ));
   punishmentSettings.appendChild(createNumberInput(
     'Strike Decay Days',
@@ -130,6 +130,7 @@ export function renderModerationPage(container: HTMLElement) {
 
 function collectAndSave(container: HTMLElement) {
   const updates: any = {};
+  const timeSettingsInMinutes = ['timeoutDuration'];
   
   container.querySelectorAll('[data-setting]').forEach(element => {
     const key = (element as HTMLElement).dataset.setting!;
@@ -140,7 +141,11 @@ function collectAndSave(container: HTMLElement) {
       updates[key] = getTagValues(element as HTMLElement);
     } else if (element instanceof HTMLSelectElement || element instanceof HTMLInputElement) {
       const value = element.value;
-      updates[key] = element.type === 'number' ? Number(value) : value;
+      let numValue = element.type === 'number' ? Number(value) : value;
+      if (timeSettingsInMinutes.includes(key) && typeof numValue === 'number') {
+        numValue = numValue * 60000;
+      }
+      updates[key] = numValue;
     }
   });
 

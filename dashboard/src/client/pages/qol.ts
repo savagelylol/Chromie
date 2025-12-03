@@ -41,11 +41,11 @@ export function renderQolPage(container: HTMLElement) {
 
   const uxSettings = document.getElementById('ux-settings')!;
   uxSettings.appendChild(createNumberInput(
-    'Session Reminder Interval (ms)',
+    'Session Reminder Interval (mins)',
     'How often to remind about active sessions',
     'sessionReminderInterval',
-    settings.sessionReminderInterval,
-    10000
+    Math.round(settings.sessionReminderInterval / 60000),
+    1
   ));
   uxSettings.appendChild(createToggle(
     'Allow User Presets',
@@ -81,6 +81,7 @@ export function renderQolPage(container: HTMLElement) {
 
 function collectAndSave(container: HTMLElement) {
   const updates: any = {};
+  const timeSettingsInMinutes = ['sessionReminderInterval'];
   
   container.querySelectorAll('[data-setting]').forEach(element => {
     const key = (element as HTMLElement).dataset.setting!;
@@ -89,7 +90,11 @@ function collectAndSave(container: HTMLElement) {
       updates[key] = element.classList.contains('active');
     } else if (element instanceof HTMLSelectElement || element instanceof HTMLInputElement) {
       const value = element.value;
-      updates[key] = element.type === 'number' ? Number(value) : value;
+      let numValue = element.type === 'number' ? Number(value) : value;
+      if (timeSettingsInMinutes.includes(key) && typeof numValue === 'number') {
+        numValue = numValue * 60000;
+      }
+      updates[key] = numValue;
     }
   });
 
