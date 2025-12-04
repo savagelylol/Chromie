@@ -200,7 +200,7 @@ async function pluginInit(page) {
                 console.log(chalk.cyan(`🔄 Redirecting to alternative: ${alternative}`));
                 
                 // Emit event for bot to send notification
-                if (page._antiBot NotificationCallback) {
+                if (page._antiBotNotificationCallback) {
                     page._antiBotNotificationCallback(pattern, alternative);
                 }
                 
