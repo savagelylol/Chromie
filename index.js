@@ -14,7 +14,7 @@ const db = knex({
 });
 
 /** VERSION: CHANGE THIS TO UPDATE BOT VERSION */
-const BOT_VERSION = 'v4.0.0';
+const BOT_VERSION = 'v4.0.1';
 
 /** BLACKLIST: CHANGE, ADD OR REMOVE KEYWORDS HERE */
 const NSFW_LIST = 'https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en';
