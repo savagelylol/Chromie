@@ -68,7 +68,7 @@ externalPort = 3000
 
 [userenv.shared]
 DISCORD_CLIENT_ID = "1435042167050604746"
-FRONTEND_URL = "https://f057aacb-f1fb-4b4a-9741-92e0c8e5713b-00-2nfjunc4opq33.kirk.replit.dev"
+FRONTEND_URL = "https://8eada351-82ae-43f5-8388-464ba27c407f-00-1n6r8fanasfdy.worf.replit.dev"
 
 [env]
 # These will be used in deployment - update after deploying

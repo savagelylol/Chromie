@@ -204,7 +204,7 @@ async function pluginInit(page) {
                     page._antiBotNotificationCallback(pattern, alternative);
                 }
                 
-                await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
+                await new Promise(r => setTimeout(r, 50 + Math.random() * 100));
                 
                 try {
                     await page.goto(alternative, { 

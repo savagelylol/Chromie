@@ -246,7 +246,7 @@ class BrowserAdapter {
                 if (currentUrl.includes(pattern)) {
                     console.log(chalk.yellow(`⚠️  ${engine} anti-bot detected, redirecting...`));
                     
-                    await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
+                    await new Promise(r => setTimeout(r, 50 + Math.random() * 100));
                     
                     if (engine === 'google') {
                         try {
@@ -300,7 +300,7 @@ class BrowserAdapter {
                 }
             }
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 100));
         } catch (e) {
             console.log(chalk.yellow('⚠️  Browser cleanup error:'), chalk.dim(e.message));
         }
@@ -311,10 +311,10 @@ class BrowserAdapter {
         return browser.isConnected();
     }
 
-    static async forceEndMaintenance(guildId) {
+    static async forceEndMaintenance(guildId, existingDb = null) {
         try {
             const knex = require('knex');
-            const db = knex({
+            const db = existingDb || knex({
                 client: 'pg',
                 connection: process.env.POSTGRES_URL || process.env.DATABASE_URL,
                 pool: { min: 0, max: 5 }
@@ -328,7 +328,9 @@ class BrowserAdapter {
             
             console.log(chalk.green(`✓ Maintenance mode cleared for guild ${guildId}`));
             
-            await db.destroy();
+            if (!existingDb) {
+                await db.destroy();
+            }
         } catch (error) {
             console.error(chalk.red('Error clearing maintenance mode:'), error);
             throw error;

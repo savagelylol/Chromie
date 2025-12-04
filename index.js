@@ -112,6 +112,16 @@ const userRateLimits = new Map(); // Map<userId, { count, resetTime }>
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX = 10; // 10 commands per minute
 
+// Cleanup expired rate limits every 5 minutes to prevent memory leaks
+const rateLimitCleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [userId, limit] of userRateLimits) {
+        if (now > limit.resetTime) {
+            userRateLimits.delete(userId);
+        }
+    }
+}, 300000);
+
 let responseBuffer;
 let chromeLaunchOptions;
 let browser;
@@ -405,7 +415,9 @@ async function sussySearch(content) {
                 return true;
         }
 
-        // Then check the NSFW word list using Map for faster lookups
+        // Check NSFW word list - use substring matching for comprehensive detection
+        // This ensures we catch words embedded in URLs (pornhub.com), punctuated text (badword!),
+        // hyphenated words, and all variations while still being efficient
         for (const [word] of obscureWords) {
             if (content.includes(word)) {
                 return true;
@@ -421,10 +433,22 @@ async function sussySearch(content) {
 */
 async function move(dir) {
         if (dir === 'click') await page.mouse.click(x, y);
-        if (dir === 'up' && y <= 1080) await page.mouse.move(x, y - mouseModifier), y -= mouseModifier;
-        if (dir === 'down' && y <= 1080) await page.mouse.move(x, y + mouseModifier), y += mouseModifier;
-        if (dir === 'left' && x <= 1920) await page.mouse.move(x - mouseModifier, y), x -= mouseModifier;
-        if (dir === 'right' && x <= 1920) await page.mouse.move(x + mouseModifier, y), x += mouseModifier;
+        if (dir === 'up' && y > 0) {
+                y = Math.max(0, y - mouseModifier);
+                await page.mouse.move(x, y);
+        }
+        if (dir === 'down' && y < 1080) {
+                y = Math.min(1080, y + mouseModifier);
+                await page.mouse.move(x, y);
+        }
+        if (dir === 'left' && x > 0) {
+                x = Math.max(0, x - mouseModifier);
+                await page.mouse.move(x, y);
+        }
+        if (dir === 'right' && x < 1920) {
+                x = Math.min(1920, x + mouseModifier);
+                await page.mouse.move(x, y);
+        }
 }
 
 /**
@@ -497,6 +521,44 @@ async function stopPerformanceMode() {
 }
 
 /** EXPORT CODE */
+
+// Graceful shutdown handler to cleanup browser processes
+async function gracefulShutdown(signal) {
+    console.log(chalk.yellow(`\n${signal} received. Cleaning up...`));
+    try {
+        // Clear rate limit cleanup interval
+        clearInterval(rateLimitCleanupInterval);
+        
+        // Close global browser instance
+        if (browser) {
+            await BrowserAdapter.closeBrowser(browser, browserType);
+            console.log(chalk.green('✓ Global browser closed'));
+        }
+        // Close all per-guild session resources
+        for (const [guildId, session] of guildSessions) {
+            if (session.performanceInterval) {
+                clearInterval(session.performanceInterval);
+            }
+            if (session.page) {
+                try { await session.page.close(); } catch (e) {}
+            }
+            // Close per-guild browser instances if they exist
+            if (session.browser && session.browser !== browser) {
+                try { 
+                    await BrowserAdapter.closeBrowser(session.browser, session.browserType);
+                } catch (e) {}
+            }
+        }
+        guildSessions.clear();
+        console.log(chalk.green('✓ Sessions cleaned up'));
+    } catch (e) {
+        console.log(chalk.yellow('⚠️  Cleanup error:'), e.message);
+    }
+    process.exit(0);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 /**
  * The main browse function.
@@ -648,7 +710,8 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                 const found = data.find((x) => x.id == msg.author.id);
 
                 if (found !== undefined) {
-                        data.splice(found, 1);
+                        const foundIndex = data.findIndex((x) => x.id == msg.author.id);
+                        if (foundIndex > -1) data.splice(foundIndex, 1);
 
                         const NSFW_OR_NOT = await sussySearch(msg.content);
 
@@ -668,7 +731,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                 }, { name: 'blocked.png', file: responseBuffer });
                         }
 
-                        await page.keyboard.type(msg.content, { delay: 10 });
+                        await page.keyboard.type(msg.content, { delay: 0 });
                         console.log(chalk.blue('⌨️  Typed text:'), chalk.dim(msg.content.substring(0, 50) + (msg.content.length > 50 ? '...' : '')));
 
                         await msg.addReaction('✅');
@@ -690,7 +753,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                 await int.acknowledge(64);
 
                                 try {
-                                        await BrowserAdapter.forceEndMaintenance(int.guildID); 
+                                        await BrowserAdapter.forceEndMaintenance(int.guildID, db); 
                                         await int.createFollowup({
                                                 content: '✅ Maintenance mode has been force cleared. The browser is now available.',
                                                 flags: 64
