@@ -67,23 +67,6 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=41
 npm start
 ```
 
-## 🚀 Deployment on Replit
-
-This bot is optimized for deployment on Replit:
-
-1. Fork this Repl
-2. Add your `DISCORD_TOKEN` and `GUILD_ID` in the Secrets tool (🔒 icon in sidebar)
-3. Click **Deploy** and choose **Reserved VM** (recommended for Discord bots)
-4. Configure your deployment:
-   - Run command: `node run.js`
-   - The bot will automatically start and stay online
-
-### Why Reserved VM?
-- ✅ Persistent connection for Discord bot
-- ✅ 99.9% uptime guarantee
-- ✅ No cold starts
-- ✅ Suitable for long-running processes
-
 ## 🔐 Security Best Practices
 
 ### Before Deploying:
