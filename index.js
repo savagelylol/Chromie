@@ -14,7 +14,7 @@ const db = knex({
 });
 
 /** VERSION: CHANGE THIS TO UPDATE BOT VERSION */
-const BOT_VERSION = 'v4.5.0';
+const DISCORDMIUM_VERSION = 'v4.5.0';
 
 /** BLACKLIST: CHANGE, ADD OR REMOVE KEYWORDS HERE */
 const NSFW_LIST = 'https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en';
@@ -495,7 +495,7 @@ async function startPerformanceMode(bot, userId, interval) {
                                                 image: { url: 'attachment://file.png' },
                                                 color: 0x00BFFF,
                                                 footer: {
-                                                        text: `Discordmium ${BOT_VERSION} • Chromie`
+                                                        text: `Discordmium ${DISCORDMIUM_VERSION} • Chromie`
                                                 }
                                         }]
                                 }, { name: 'file.png', file: screenshot });
@@ -1047,7 +1047,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                                         image: { url: 'attachment://file.png' },
                                                         color: 0x00BFFF,
                                                         footer: {
-                                                                text: `Discordmium ${BOT_VERSION} • Chromie`
+                                                                text: `Discordmium ${DISCORDMIUM_VERSION} • Chromie`
                                                         }
                                                 }],
                                                 attachments: [],
@@ -1153,7 +1153,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                                                                 title: '📜 Browsing History',
                                                                                 description: historyList,
                                                                                 color: 0x00BFFF,
-                                                                                footer: { text: `Last 10 URLs • ${BOT_VERSION}` }
+                                                                                footer: { text: `Last 10 URLs • ${DISCORDMIUM_VERSION}` }
                                                                         }],
                                                                         messageReference: { messageID: messageID.id }
                                                                 });
@@ -1461,7 +1461,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                                                 image: { url: 'attachment://file.png' },
                                                                 color: 0x00BFFF,
                                                                 footer: {
-                                                                        text: `Discordmium ${BOT_VERSION} • Chromie`
+                                                                        text: `Discordmium ${DISCORDMIUM_VERSION} • Chromie`
                                                                 }
                                                         }],
                                                         attachments: [],
@@ -1601,7 +1601,7 @@ module.exports = async function browse(token, clearTime = 300000, sussyFilter = 
                                                                                         title: '📜 Browsing History',
                                                                                         description: historyList,
                                                                                         color: 0x00BFFF,
-                                                                                        footer: { text: `Last 10 URLs • ${BOT_VERSION}` }
+                                                                                        footer: { text: `Last 10 URLs • ${DISCORDMIUM_VERSION}` }
                                                                                 }],
                                                                                 messageReference: { messageID: messageID.id }
                                                                         });
